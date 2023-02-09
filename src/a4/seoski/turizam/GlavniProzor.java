@@ -4,18 +4,22 @@
  * and open the template in the editor.
  */
 package a4.seoski.turizam;
+
+import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Kab15prof
  */
 public class GlavniProzor extends javax.swing.JFrame {
+
     Connection c;
-    
+
     /**
      * Creates new form GlavniProzor
      */
@@ -27,7 +31,7 @@ public class GlavniProzor extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 
     /**
@@ -105,6 +109,14 @@ public class GlavniProzor extends javax.swing.JFrame {
                 jTextField1ActionPerformed(evt);
             }
         });
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField1KeyPressed(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                jTextField1KeyTyped(evt);
+            }
+        });
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -120,6 +132,11 @@ public class GlavniProzor extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTable1);
 
         jButton4.setText("Unesi izmene >>>");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -183,6 +200,55 @@ public class GlavniProzor extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
 
+    private void jTextField1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyTyped
+
+
+    }//GEN-LAST:event_jTextField1KeyTyped
+
+    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            try {
+                PreparedStatement ps = c.prepareStatement(
+                        "SELECT Selo.Naziv AS Naziv, Grad.GradID AS GradID"
+                        + " FROM Selo INNER JOIN Grad ON Selo.GradID=Grad.GradID "
+                        + " WHERE Selo.SeloID = ? ");
+                ps.setString(1, jTextField1.getText());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    jTextField2.setText(rs.getString("Naziv"));
+                    //System.out.println(rs.getString("GradID"));
+                    for (int i = 0; i < jComboBox1.getItemCount(); i++) {
+                        if (jComboBox1.getItemAt(i).ID == rs.getInt("GradID")) {
+                            jComboBox1.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                } else {
+                    jTextField2.setText("");
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jTextField1KeyPressed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        try {
+            PreparedStatement ps = c.prepareStatement(
+                    "UPDATE Selo SET Naziv=?, GradID=?"
+                    + "WHERE SeloID=?");
+            ps.setString(1, jTextField2.getText());
+            ps.setInt(2, ((GradDO) jComboBox1.getSelectedItem()).ID);
+            ps.setString(3, jTextField1.getText());
+            ps.execute();
+            populate();
+        } catch (SQLException ex) {
+            Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_jButton4ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -238,21 +304,21 @@ public class GlavniProzor extends javax.swing.JFrame {
         Statement s = c.createStatement();
         ResultSet rs = s.executeQuery("SELECT * FROM Grad");
         DefaultComboBoxModel<GradDO> dcbm = new DefaultComboBoxModel<>();
-        while (rs.next()){
+        while (rs.next()) {
             GradDO grad = new GradDO();
             grad.ID = rs.getInt("GradID");
             grad.naziv = rs.getString("Grad");
             dcbm.addElement(grad);
         }
         jComboBox1.setModel(dcbm);
-        
+
         rs = s.executeQuery("SELECT Selo.SeloID AS ID, Selo.Naziv AS Naziv, Grad.Grad AS Grad"
                 + " FROM Selo INNER JOIN Grad ON Selo.GradID=Grad.GradID");
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.addColumn("Sifra");
         dtm.addColumn("Naziv");
         dtm.addColumn("Grad");
-        while(rs.next()){
+        while (rs.next()) {
             Object[] red = new Object[3];
             red[0] = rs.getInt("ID");
             red[1] = rs.getString("Naziv");
@@ -262,5 +328,4 @@ public class GlavniProzor extends javax.swing.JFrame {
         jTable1.setModel(dtm);
     }
 
-    
 }
