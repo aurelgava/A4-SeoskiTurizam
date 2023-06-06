@@ -10,6 +10,7 @@ import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -207,7 +208,8 @@ public class GlavniProzor extends javax.swing.JFrame {
 
     private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            try {
+            try {                
+                /*
                 PreparedStatement ps = c.prepareStatement(
                         "SELECT Selo.Naziv AS Naziv, Grad.GradID AS GradID"
                         + " FROM Selo INNER JOIN Grad ON Selo.GradID=Grad.GradID "
@@ -223,11 +225,34 @@ public class GlavniProzor extends javax.swing.JFrame {
                             break;
                         }
                     }
+                
                 } else {
                     jTextField2.setText("");
                 }
+                */
+                boolean sifraPostojiUTabeli = false;
+                for(int i=0; i<jTable1.getRowCount(); i++){
+                    if( Integer.parseInt(jTextField1.getText()) == (Integer)jTable1.getValueAt(i, 0) ){
+                        sifraPostojiUTabeli = true;
+                        jTable1.setRowSelectionInterval(i,i);
+                        jTextField2.setText( (String)jTable1.getValueAt(i, 1) );
+                        for (int j = 0; j < jComboBox1.getItemCount(); j++) {
+                            if (jComboBox1.getItemAt(j).ID == ((GradDO)jTable1.getValueAt(i, 2)).ID ) {
+                                jComboBox1.setSelectedIndex(j);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if(!sifraPostojiUTabeli){
+                    jTextField1.setText("");
+                    jTextField2.setText("");
+                    jComboBox1.setSelectedIndex(-1);
+                }
 
-            } catch (SQLException ex) {
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Sifra nije ispravno napisana", "Greska", JOptionPane.ERROR_MESSAGE);
                 Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -311,8 +336,9 @@ public class GlavniProzor extends javax.swing.JFrame {
             dcbm.addElement(grad);
         }
         jComboBox1.setModel(dcbm);
+        jComboBox1.setSelectedIndex(-1);
 
-        rs = s.executeQuery("SELECT Selo.SeloID AS ID, Selo.Naziv AS Naziv, Grad.Grad AS Grad"
+        rs = s.executeQuery("SELECT Selo.SeloID AS ID, Selo.Naziv AS Naziv, Grad.Grad AS Grad, Grad.GradID AS GradID "
                 + " FROM Selo INNER JOIN Grad ON Selo.GradID=Grad.GradID");
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.addColumn("Sifra");
@@ -322,7 +348,11 @@ public class GlavniProzor extends javax.swing.JFrame {
             Object[] red = new Object[3];
             red[0] = rs.getInt("ID");
             red[1] = rs.getString("Naziv");
-            red[2] = rs.getString("Grad");
+            //red[2] = rs.getString("Grad");
+                GradDO grad = new GradDO();
+                grad.ID = rs.getInt("GradID");
+                grad.naziv = rs.getString("Grad");
+            red[2] = grad;
             dtm.addRow(red);
         }
         jTable1.setModel(dtm);
