@@ -1,0 +1,2 @@
+2023-06-06java.sql.SQLException: Sifra ne postoji u bazi!
+2023-06-06 java.sql.SQLException: Sifra ne postoji u bazi!

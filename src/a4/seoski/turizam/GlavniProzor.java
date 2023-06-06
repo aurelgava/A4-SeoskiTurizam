@@ -6,7 +6,11 @@
 package a4.seoski.turizam;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
@@ -208,7 +212,7 @@ public class GlavniProzor extends javax.swing.JFrame {
 
     private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            try {                
+            try {
                 /*
                 PreparedStatement ps = c.prepareStatement(
                         "SELECT Selo.Naziv AS Naziv, Grad.GradID AS GradID"
@@ -229,15 +233,15 @@ public class GlavniProzor extends javax.swing.JFrame {
                 } else {
                     jTextField2.setText("");
                 }
-                */
+                 */
                 boolean sifraPostojiUTabeli = false;
-                for(int i=0; i<jTable1.getRowCount(); i++){
-                    if( Integer.parseInt(jTextField1.getText()) == (Integer)jTable1.getValueAt(i, 0) ){
+                for (int i = 0; i < jTable1.getRowCount(); i++) {
+                    if (Integer.parseInt(jTextField1.getText()) == (Integer) jTable1.getValueAt(i, 0)) {
                         sifraPostojiUTabeli = true;
-                        jTable1.setRowSelectionInterval(i,i);
-                        jTextField2.setText( (String)jTable1.getValueAt(i, 1) );
+                        jTable1.setRowSelectionInterval(i, i);
+                        jTextField2.setText((String) jTable1.getValueAt(i, 1));
                         for (int j = 0; j < jComboBox1.getItemCount(); j++) {
-                            if (jComboBox1.getItemAt(j).ID == ((GradDO)jTable1.getValueAt(i, 2)).ID ) {
+                            if (jComboBox1.getItemAt(j).ID == ((GradDO) jTable1.getValueAt(i, 2)).ID) {
                                 jComboBox1.setSelectedIndex(j);
                                 break;
                             }
@@ -245,7 +249,7 @@ public class GlavniProzor extends javax.swing.JFrame {
                         break;
                     }
                 }
-                if(!sifraPostojiUTabeli){
+                if (!sifraPostojiUTabeli) {
                     jTextField1.setText("");
                     jTextField2.setText("");
                     jComboBox1.setSelectedIndex(-1);
@@ -266,10 +270,27 @@ public class GlavniProzor extends javax.swing.JFrame {
             ps.setString(1, jTextField2.getText());
             ps.setInt(2, ((GradDO) jComboBox1.getSelectedItem()).ID);
             ps.setString(3, jTextField1.getText());
-            ps.execute();
+            int daLiJeNestoUpisano = ps.executeUpdate();
+            if(daLiJeNestoUpisano == 0) throw new SQLException("Sifra ne postoji u bazi!");
             populate();
+            jTextField1.setText("");
+            jTextField2.setText("");
+            jComboBox1.setSelectedIndex(-1);
+            JOptionPane.showMessageDialog(this, "Podaci uspesno izmenjeni", "Uspeh!", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Izmena nije uspela", "Greska", JOptionPane.ERROR_MESSAGE);
+            File f = new File("error.txt");
+            try {
+                FileWriter fw = new FileWriter(f, true);
+                fw.write(LocalDate.now().toString() + " " + ex + "\n");
+                fw.close();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Zapis u log fajl nije uspeo", "Greska", JOptionPane.ERROR_MESSAGE);
+                Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
+            }
             Logger.getLogger(GlavniProzor.class.getName()).log(Level.SEVERE, null, ex);
+        }catch (NullPointerException ex){
+            JOptionPane.showMessageDialog(this, "Niste izabrali grad!", "Greska!", JOptionPane.ERROR_MESSAGE);
         }
 
     }//GEN-LAST:event_jButton4ActionPerformed
@@ -349,9 +370,9 @@ public class GlavniProzor extends javax.swing.JFrame {
             red[0] = rs.getInt("ID");
             red[1] = rs.getString("Naziv");
             //red[2] = rs.getString("Grad");
-                GradDO grad = new GradDO();
-                grad.ID = rs.getInt("GradID");
-                grad.naziv = rs.getString("Grad");
+            GradDO grad = new GradDO();
+            grad.ID = rs.getInt("GradID");
+            grad.naziv = rs.getString("Grad");
             red[2] = grad;
             dtm.addRow(red);
         }
